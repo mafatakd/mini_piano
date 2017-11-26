@@ -30,5 +30,3 @@ void playFreq(float freq, float timeToPlay){
 	// }	
 	// status = pwmSetupDriver(-1, 0, 0);
 
-int main(){}
-

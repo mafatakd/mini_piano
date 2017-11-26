@@ -3,9 +3,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-
+#ifndef
 #include <ugpio/ugpio.h>
-
+#endif
 
 #define freqC 261
 #define freqD 293

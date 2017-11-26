@@ -1,7 +1,7 @@
 # main compiler
 CC := gcc
 
-TARGET1 := ledPWM
+TARGET1 := main
 
 all: $(TARGET1)
 
