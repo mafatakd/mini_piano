@@ -1,7 +1,9 @@
 #include "pwm-exp.h"
 
-
-
+// class Sound {
+// public:
+// 	void playFreq(float freq, float timeToPlay);
+// }
 void playFreq(float freq, float timeToPlay){
 
 	int status = pwmDriverInit();
@@ -10,14 +12,12 @@ void playFreq(float freq, float timeToPlay){
 	sleep(timeToPlay);
 	status = pwmSetDriver(-1, 0, 0);
 	status = pwmSetFrequency(1526);
+
 }
-
-
-int main(int argc, char **argv, char **envp){
-
+// int main(int argc, char **argv, char **envp){
 	//Initializasion sequence on the servo expansion
-	int status = pwmDriverInit();
-	float freq = ;
+	// int status = pwmDriverInit();
+	// float freq = ;
 
 	
 	
@@ -28,7 +28,7 @@ int main(int argc, char **argv, char **envp){
 	// 	sleep(0.1);
 	// 	freq = freq + 1; 
 	// }	
-	status = pwmSetupDriver(-1, 0, 0);
-	
-}
-  
+	// status = pwmSetupDriver(-1, 0, 0);
+
+int main(){}
+

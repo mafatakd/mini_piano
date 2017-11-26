@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include "sound.h"
 #include <ugpio/ugpio.h>
 
 void gpio_setup(unsigned int gpio){
@@ -24,14 +24,17 @@ int main(){
 		if (gpio_get_value(gpioC)){
 			printf("D is pressed (GPIO # %d", gpioC);
 			keyPressed = 1;
-			// call sound function
+			int time = 3;
+			// get time pressed
+			playFreq(freqC, time);
 
 		}
 		if (gpio_get_value(gpioD)){
 			printf("D is pressed (GPIO # %d", gpioD);
 			keyPressed = 1;
-			// call sound function
-
+			int time = 3;
+			// get time pressed
+			playFreq(freqD, time);
 		}
 	}
 
