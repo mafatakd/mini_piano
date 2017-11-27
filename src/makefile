@@ -1,5 +1,5 @@
 # main compiler
-CC := gcc
+CC := g++
 
 TARGET1 := main
 
@@ -7,7 +7,7 @@ all: $(TARGET1)
 
 $(TARGET1): 
 	@echo "Compiling C program"
-	$(CC) $(CFLAGS) $(TARGET1).c -o $(TARGET1) $(LDFLAGS) $(LIB)
+	$(CXX) $(CFLAGS) $(TARGET1).cpp -o $(TARGET1) $(LDFLAGS) $(LIB)
 
 clean:
 	@rm -rf $(TARGET1) $(TARGET2)
