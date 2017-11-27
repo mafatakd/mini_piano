@@ -7,6 +7,9 @@
 
 #include "pwm-exp.h"
 
+//////////////////////////////////////////////////////////////////////
+//	structs and definitions
+//////////////////////////////////////////////////////////////////////
 #define freqC 261
 #define freqD 293
 #define freqE 329
@@ -15,19 +18,33 @@
 #define freqA 440
 #define freqB 493
 
+
+
 enum noteName {C, D, E, F, G, A, B};
 
 struct Key{
 	noteName name;
 };
 
-struct Notes{
+struct Note{
 
 	Key* key;
-	Notes* next;
+	Note* next;
 	int size;
 
 };
+//////////////////////////////////////////////////////////////////////
+//	function declarations
+//////////////////////////////////////////////////////////////////////
+void playFreq(float freq, float timeToPlay, int pinToPlay);
+void gpio_setup(unsigned int gpio);
+float timePressed(unsigned int gpio);
+bool addKeytoSong(noteName key, Note*& song);
+
+
+//////////////////////////////////////////////////////////////////////
+//	implementation
+//////////////////////////////////////////////////////////////////////
 
 
 void playFreq(float freq, float timeToPlay, int pinToPlay){
@@ -57,22 +74,27 @@ float timePressed(unsigned int gpio){
 	return time;
 
 }
-bool addKeytoSong(noteName key, Notes*& song){
+bool addKeytoSong(noteName noteName, Note*& song){
 	
-	Key* newKey = new Key{key};
-	Notes->size += 1;
+	Key* newKey = new Key;
+	newKey->name = noteName;
+	song->size += 1;
 
-	if (song->key == NULL){
-		song->key = newKey
-		return true;
-	}
-	
-	Notes* curr = song;
+	// if (song->key == NULL){
+	// 	song->key = newKey;
+	// 	return true;
+	// }
+
+	Note* curr = song;
 	while (curr->next != NULL){
 		curr = curr->next;
 	}
 
-	curr->next = newKey;
+	Note* newNote = new Note;
+	newNote->key = newKey;
+	newNote->next = NULL;
+	newNote->size = -1;
+	curr->next = newNote;
 
 	return true;
 }
@@ -89,7 +111,7 @@ int main(){
 	bool stillPlaying = true;;
 	float time;
 
-	Notes* newSong = new Notes;
+	Note* newSong = new Note;
 
 
 	while (stillPlaying){
@@ -99,7 +121,7 @@ int main(){
 			time = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);	
 			playFreq(freqC, time, 7);
-			addKey(C, newSong);
+			addKeytoSong(C, newSong);
 		}
 
 		if (gpio_get_value(gpioD)){
@@ -107,7 +129,7 @@ int main(){
 			time = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);
 			playFreq(freqD, time, -1);	
-			addKey(D, newSong);
+			addKeytoSong(D, newSong);
 		}
 	}
 
