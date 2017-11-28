@@ -3,11 +3,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <fstream>
+#include <iostream>
 // #include "sound.h"
 #include <ugpio/ugpio.h>
 
 #include "pwm-exp.h"
-
+using namespace std;
 //////////////////////////////////////////////////////////////////////
 //	structs and definitions
 //////////////////////////////////////////////////////////////////////
@@ -18,11 +19,11 @@
 #define freqG 392
 #define freqA 440
 #define freqB 493
+enum NotesName {C, D, E, F, G, A, B};
 
 class Song{
 public:
-	enum NotesName {C, D, E, F, G, A, B};
-	void write_to_file();
+	int write_to_file(char filename[]);
 	void play(char filename[]);
 	bool record();
 	Song(char* songName);
@@ -71,10 +72,15 @@ int Song::write_to_file(char filename[]){
 	}
 	ofstream outfile;
 	char* filenameCopy;
-	char statStr[5] = {'.', 'm', 'u', 's', 0};
+	char musStr[5] = {'.', 'm', 'u', 's', 0};
+	int filenameInd = 0;
+
+	while (filename[filenameInd] != 0){
+		filenameInd += 1;
+	}
 
 	for (int i = 0; i < 5; i++){
-		filenameCopy[filenameInd + i] = statStr[i];
+		filenameCopy[filenameInd + i] = musStr[i];
 	}
 
 	outfile.open(filenameCopy);
@@ -83,9 +89,9 @@ int Song::write_to_file(char filename[]){
 		return -1;
 	}
 
-	while (mySong != NULL){
+	// while (mySong != NULL){
 
-	}
+	// }
 
 
 }
@@ -118,6 +124,15 @@ bool Song::addKeytoSong(NotesName newName){
 	return true;
 }
 
+Song::~Song(){
+	Notes* curr = mySong;
+	while (curr != NULL){
+		Notes* next = curr->next;
+		delete curr;
+		curr = next;
+	}
+	mySong = 0;
+}
 
 
 
@@ -127,20 +142,18 @@ bool Song::addKeytoSong(NotesName newName){
 void playFreq(float freq, float timeToPlay, int pinToPlay);
 void gpio_setup(unsigned int gpio);
 float timePressed(unsigned int gpio);
-bool addKeytoSong(noteName key, Note*& song);
-
 
 //////////////////////////////////////////////////////////////////////
 //	implementation
 //////////////////////////////////////////////////////////////////////
 
 
-void playFreq(float freq, float timeToPlay, int pinToPlay){
+void playFreq(float freq, float timeToPlayToPlay, int pinToPlay){
 
 	int status = pwmDriverInit();
 	status = pwmSetFrequency(freq);
 	status = pwmSetupDriver(pinToPlay, 45, 0);
-	sleep(timeToPlay);
+	sleep(timeToPlayToPlay);
 	status = pwmSetupDriver(pinToPlay, 0, 0);
 	status = pwmSetFrequency(1526);
 
@@ -154,15 +167,15 @@ void gpio_setup(unsigned int gpio){
 
 
 
-float timePressed(unsigned int gpio){
+float timeToPlayPressed(unsigned int gpio){
 	
-	float time = 0;
+	float timeToPlay = 0;
 	while (gpio_get_value(gpio)){ // while clicked
 		sleep(0.1);
-		time  = time + 0.1;
+		timeToPlay  = timeToPlay + 0.1;
 	}
-	printf("I'm done, I got the time, it's %f.", time);
-	return time;
+	printf("I'm done, I got the timeToPlay, it's %f.", timeToPlay);
+	return timeToPlay;
 
 }
 // bool addKeytoSong(noteName noteName, Note*& song){
@@ -194,16 +207,18 @@ float timePressed(unsigned int gpio){
 int main(const int argc, const char* const argv[]){
 	unsigned int gpioC = 9;
 	unsigned int gpioD = 8;
-	unsigned int startGpio = 0;
+	unsigned int gpioEND = 0;
 
 
 	gpio_setup(gpioC);
 	gpio_setup(gpioD);
+	gpio_setup(gpioEND);
+
 	bool stillPlaying = true;;
-	// float time;
+	float timeToPlay;
 	
 	char* songName = new char[100];
-	songName = argv[1];
+	songName = (char*) argv[1];
 	cout << "Got argument 1 into songName: " << songName << endl;
 
 	Song newSong(songName);
@@ -213,26 +228,26 @@ int main(const int argc, const char* const argv[]){
 	while (stillPlaying){
 
 		if (gpio_get_value(gpioC)){
-			// time = timePressed(gpioC);
-			time = 1;
+			// timeToPlay = timeToPlayPressed(gpioC);
+			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);		// switch this to logging.
-			playFreq(freqC, time, 7);
-			addKeytoSong(C, newSong);
+			playFreq(freqC, timeToPlay, 7);
+			newSong.addKeytoSong(C);
 		}
 
 		if (gpio_get_value(gpioD)){
-			// time = timePressed(gpioD);
-			time = 1;
+			// timeToPlay = timeToPlayPressed(gpioD);
+			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);		// switch this to logging.
-			playFreq(freqD, time, -1);	
-			addKeytoSong(D, newSong);
+			playFreq(freqD, timeToPlay, -1);	
+			newSong.addKeytoSong(D);
 		}
 
 		if(gpio_get_value(gpioEND)){
 			stillPlaying = false;
 			break;
 		}
-
+	~newSong();
 
 	}
 }
