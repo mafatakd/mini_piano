@@ -25,6 +25,7 @@ else if play:
 	
 	print options from menu file (file reading)
 	choose song (cin numbers [0-9])
+	pass off songname ONLY.
 	play song --> other persons job
 
 else if stat:
@@ -48,6 +49,10 @@ else if stat:
 
 /* while recording:
 	t = 1;
+	delete songs.
+	
+*/
+
 
 
 

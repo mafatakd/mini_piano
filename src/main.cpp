@@ -10,9 +10,21 @@
 #include "pwm-exp.h"
 using namespace std;
 
+
+//////////////////////////////////////////////////////////////////////
+//	function declarations
+//////////////////////////////////////////////////////////////////////
+
+void playFreq(float freq, float timeToPlay, int pinToPlay);
+void gpio_setup(unsigned int gpio);
+float timePressed(unsigned int gpio);
+void playFreq(float freq, float timeToPlay, int pinToPlay);
+void menu();
+
 //////////////////////////////////////////////////////////////////////
 //	structs and definitions
 //////////////////////////////////////////////////////////////////////
+
 #define freqC 261
 #define freqD 293
 #define freqE 329
@@ -20,60 +32,86 @@ using namespace std;
 #define freqG 392
 #define freqA 440
 #define freqB 493
-enum NotesName {C, D, E, F, G, A, B};
+enum LETTERS {C, D, E, F, G, A, B};
+
+//////////////////////////////////////////////////////////////////////
+//	Song class declaration
+//////////////////////////////////////////////////////////////////////
 
 class Song{
 public:
+
 	int write_to_file(char filename[]);
-	void play(char filename[]);
 	bool record();
+	bool play();
 	Song(char* songName);
 	// Song(&Song);
 
 	~Song();
 	
 	//////////////////////////////////////////////////////////////////////
-	//	helper functions
-	//////////////////////////////////////////////////////////////////////
-	bool addKeytoSong(NotesName newName);
+	// helper functions
+
+	bool addKeytoSong(LETTERS newName);
+	int typetoFreq(LETTERS letter);
+
 
 private:
 	struct Key{
-		NotesName name;
+		LETTERS name;
+		int timeHeld;
 	};
 
 	struct Notes{
 		Key* key;
 		Notes* next;
-		int size;
 	};
 	Notes* mySong;
 };
 
+int Song::typetoFreq(LETTERS letter){
 
+	int freqArr[7] = {261, 293, 329, 349, 392, 440, 493};
+	return freqArr[letter];
+}
 
-void Song::play(char filename[]){
+bool Song::play(){
 	
+	if (mySong->key == NULL){
+		cerr << "OMG NO KEYS IN SONG CAN'T PLAY. ABORT" << endl;
+		return false;
+	}
+
+	Notes* curr = mySong;
+
+	while (curr != NULL){
+		playFreq(typetoFreq(curr->key->name), curr->key->timeHeld, -1);
+		curr = curr->next;
+	}
+
+	cout << "Done playing song" << endl;
+
+	return true;
 }
 
 Song::Song(char* songName){
 	mySong = new Notes;
 	mySong->key = NULL;
 	mySong->next = NULL;
-	mySong->size = 0;
-	
-
 }
 
 
 int Song::write_to_file(char filename[]){
+	// check if no key in song :(
 	if (mySong->key == NULL){
 		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
 		return -1;
 	}
+
+	// initializing file for output.
 	ofstream outfile;
 	char* filenameCopy;
-	char musStr[5] = {'.', 'p', 'i', 0};
+	char piStr[5] = {'.', 'p', 'i', 0};
 	int filenameInd = 0;
 
 	while (filename[filenameInd] != 0){
@@ -81,29 +119,35 @@ int Song::write_to_file(char filename[]){
 	}
 
 	for (int i = 0; i < 5; i++){
-		filenameCopy[filenameInd + i] = musStr[i];
+		filenameCopy[filenameInd + i] = piStr[i];
 	}
-
 	outfile.open(filenameCopy);
+
 	if (!outfile.is_open()){
 		cerr << "Could not open file" << endl;
-		return -1;
+		return -2;
 	}
 
-	// while (mySong != NULL){
+	// going through the song to print the notes.
+	Notes* curr = mySong;
+	enum LETTERS {C, D, E, F, G, A, B};
+	char lettersArr[7] = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
 
-	// }
-
-
+	while (curr != NULL){
+		outfile <<  lettersArr[curr->key->name] << " " << curr->key->timeHeld;
+		if (curr->next != NULL){
+			outfile << " ";
+		}
+		else{
+			outfile << 0 << endl;
+		}
+	}
 }
 
-
-
-bool Song::addKeytoSong(NotesName newName){
+bool Song::addKeytoSong(LETTERS newName){
 	
 	Key* newKey = new Key;
 	newKey->name = newName;
-	mySong->size += 1;
 
 	if (mySong->key == NULL){
 		mySong->key = newKey;
@@ -119,7 +163,6 @@ bool Song::addKeytoSong(NotesName newName){
 	Notes* newNote = new Notes;
 	newNote->key = newKey;
 	newNote->next = NULL;
-	newNote->size = -1;
 	curr->next = newNote;
 
 	return true;
@@ -137,23 +180,17 @@ Song::~Song(){
 
 
 
-//////////////////////////////////////////////////////////////////////
-//	function declarations
-//////////////////////////////////////////////////////////////////////
-void playFreq(float freq, float timeToPlay, int pinToPlay);
-void gpio_setup(unsigned int gpio);
-float timePressed(unsigned int gpio);
 
 //////////////////////////////////////////////////////////////////////
 //	implementation
 //////////////////////////////////////////////////////////////////////
 
-void playFreq(float freq, float timeToPlayToPlay, int pinToPlay){
+void playFreq(float freq, float timeToPlay, int pinToPlay){
 
 	int status = pwmDriverInit();
 	status = pwmSetFrequency(freq);
 	status = pwmSetupDriver(pinToPlay, 45, 0);
-	sleep(timeToPlayToPlay);
+	sleep(timeToPlay);
 	status = pwmSetupDriver(pinToPlay, 0, 0);
 	status = pwmSetFrequency(1526);
 
@@ -164,24 +201,21 @@ void gpio_setup(unsigned int gpio){
 	gpio_set_value(gpio, gpio);	
 }
 
-
-
-
-float timeToPlayPressed(unsigned int gpio){
+// float timeToPlayPressed(unsigned int gpio){
 	
-	float timeToPlay = 0;
-	while (gpio_get_value(gpio)){ // while clicked
-		sleep(0.1);
-		timeToPlay  = timeToPlay + 0.1;
-	}
-	printf("I'm done, I got the timeToPlay, it's %f.", timeToPlay);
-	return timeToPlay;
+// 	float timeToPlay = 0;
+// 	while (gpio_get_value(gpio)){ // while clicked
+// 		sleep(0.1);
+// 		timeToPlay  = timeToPlay + 0.1;
+// 	}
+// 	printf("I'm done, I got the timeToPlay, it's %f.", timeToPlay);
+// 	return timeToPlay;
 
-}
+// }
+
+int recording(char songName[]){
 
 
-
-int main(const int argc, const char* const argv[]){
 
 	unsigned int gpioC = 9;
 	unsigned int gpioD = 8;
@@ -194,8 +228,8 @@ int main(const int argc, const char* const argv[]){
 	bool stillPlaying = true;;
 	float timeToPlay;
 	
-	char* songName = new char[100];
-	songName = (char*) argv[1];
+	// char* songName = new char[100];
+	// songName = (char*) argv[1];
 	cout << "Got argument 1 into songName: " << songName << endl;
 
 	Song newSong(songName);
@@ -224,42 +258,68 @@ int main(const int argc, const char* const argv[]){
 			stillPlaying = false;
 			break;
 		}
+	}
 
-	~newSong();
+	if ( newSong.write_to_file(songName) < 0){
+		cerr << "Some error while writing to file! Oh no..." << endl;
+	}
+	else{
+		cerr << "File written successfully" << endl;
+	}
+
+	delete songName;
+}
+
+
+int getChoice(){
+	int choice;
+	cin >> choice;
+	cin.ignore();
+	return choice;
+}
+
+void menu(){
+	cout << "Welcome to the MINI PIANO!" << endl;
+	cout << "Please choose an option from below [1 or 2]" << endl;
+	cout << "1. Play a song, and record it." << endl;
+	cout << "2. Play a song from memory." << endl;
+	cout << "3. Exit." << endl;
+	int choice = getChoice();
+
+	while (choice > 3 || choice < 1){
+		cout << "Error please input a valid choice [1-3]" << endl;
+		choice = getChoice();
+	}
+	if (choice == 1){
+		char* songName;
+		cin >> songName;
+		recording(songName);
+	}
+	else if (choice == 2){
+
+
+
+
+
+
 
 	}
+	else if(choice == 3){
+		cout << "Well done!, good bye!" << endl;
+	}
+
+
+
+
+}
+
+int main(const int argc, const char* const argv[]){
+	menu();
+	return 0;
+
+
 }
 
 
 
-
-
-
-
-
-
-// bool addKeytoSong(noteName noteName, Note*& song){
-	
-// 	Key* newKey = new Key;
-// 	newKey->name = noteName;
-// 	song->size += 1;
-
-// 	// if (song->key == NULL){
-// 	// 	song->key = newKey;
-// 	// 	return true;
-// 	// }
-
-// 	Note* curr = song;
-// 	while (curr->next != NULL){
-// 		curr = curr->next;
-// 	}
-
-// 	Note* newNote = new Note;
-// 	newNote->key = newKey;
-// 	newNote->next = NULL;
-// 	newNote->size = -1;
-// 	curr->next = newNote;
-
-// 	return true;
-// }
 
