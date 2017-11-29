@@ -19,6 +19,7 @@ void playFreq(float freq, float timeToPlay, int pinToPlay);
 void gpio_setup(unsigned int gpio);
 float timePressed(unsigned int gpio);
 void playFreq(float freq, float timeToPlay, int pinToPlay);
+void readFile(const char filename[])
 void menu();
 
 //////////////////////////////////////////////////////////////////////
@@ -164,6 +165,77 @@ bool Song::addKeytoSong(LETTERS newName, int timePressed){
 	curr->next = newNote;
 
 	return true;
+}
+
+void Song::readFile(const char filename[]){
+	const int maxLineLength=1000;
+	char line[maxLineLength];
+
+	char newfilename[100];
+
+	int num= 0;
+	for(int i= 0; filename[i] != '\0'; i++){
+		newfilename[i]=filename[i];
+		num++;
+	}
+
+	newfilename[num]= '.';
+	newfilename[num+1]= 'p';
+	newfilename[num+2]= 'i';
+
+	ifstream infile;
+	infile.open(newfilename);
+
+  	if(!infile.is_open())
+  		return -1;
+
+  	bool done=false;
+  	int fileLineNumber=0;	
+
+  	while(!done){
+        ++fileLineNumber;
+        
+        if (!infile.getline(line, maxLineLength)) {
+            if (infile.eof()) {
+                done = true;
+            }
+
+            else{
+                return -1;
+            }
+        }
+
+        else{
+        	int counter=0;
+        	char in=line[0];
+        	bool gotLetter= false;
+        	char lettersArr[7] = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
+        	int index=0;
+        	int num=0;
+
+        	while(in!=0){
+        		if(!gotLetter){
+        			in=line[counter];
+
+        			for(int i=0; i<7; i++){
+        				if(in==lettersArr[i]){
+        					index=i;
+        					break;
+        				}
+        			}
+
+      				gotLetter= true;
+        		}
+
+        		else if(gotLetter){
+        			num=in-48;
+        			gotLetter= false;
+        		}
+
+        		counter= counter+2;
+        		addKeyToSong(index, num);
+        	}
+        }
 }
 
 Song::~Song(){
