@@ -33,7 +33,7 @@ void menu();
 #define freqG 392
 #define freqA 440
 #define freqB 493
-enum LETTERS {C, D, E, F, G, A, B, Null};
+enum LETTERS {C, D, E, F, G, A, B};
 
 //////////////////////////////////////////////////////////////////////
 //	Song class declaration
@@ -53,7 +53,7 @@ public:
 	//////////////////////////////////////////////////////////////////////
 	// helper functions
 
-	bool addKeytoSong(LETTERS newName, int timePressed);
+	bool addKeyToSong(LETTERS newName, int timePressed);
 	int typetoFreq(LETTERS letter);
 
 
@@ -76,7 +76,7 @@ int Song::typetoFreq(LETTERS letter){
 
 bool Song::play(){
 	
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		cerr << "OMG NO KEYS IN SONG CAN'T PLAY. ABORT" << endl;
 		return false;
 	}
@@ -95,7 +95,7 @@ bool Song::play(){
 
 Song::Song(char* songName){
 	mySong = new Notes;
-	mySong->name = Null;
+	mySong->name = C;
 	mySong->timeHeld = -1;
 	mySong->next = NULL;
 }
@@ -103,7 +103,7 @@ Song::Song(char* songName){
 
 int Song::write_to_file(char filename[]){
 	// check if no key in song :(
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
 		return -1;
 	}
@@ -130,7 +130,6 @@ int Song::write_to_file(char filename[]){
 
 	// going through the song to print the notes.
 	Notes* curr = mySong;
-	enum LETTERS {C, D, E, F, G, A, B};
 	char lettersArr[7] = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
 
 	while (curr != NULL){
@@ -144,9 +143,9 @@ int Song::write_to_file(char filename[]){
 	}
 }
 
-bool Song::addKeytoSong(LETTERS newName, int timePressed){
+bool Song::addKeyToSong(LETTERS newName, int timePressed){
 
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		mySong->name = newName;
 		mySong->timeHeld = timePressed;
 		mySong->next = 0x0;
@@ -159,13 +158,14 @@ bool Song::addKeytoSong(LETTERS newName, int timePressed){
 	}
 
 	Notes* newNote = new Notes;
-	newNote->name = name;
+	newNote->name = newName;
 	mySong->timeHeld = timePressed;
 	newNote->next = NULL;
 	curr->next = newNote;
 
 	return true;
 }
+
 
 void Song::readFile(const char filename[]){
 	const int maxLineLength=1000;
@@ -311,7 +311,7 @@ int recording(char songName[]){
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);		// switch this to logging.
 			playFreq(freqC, timeToPlay, 7);
-			newSong.addKeytoSong(C);
+			newSong.addKeytoSong(C, timeToPlay);
 		}
 
 		if (gpio_get_value(gpioD)){
@@ -319,7 +319,7 @@ int recording(char songName[]){
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);		// switch this to logging.
 			playFreq(freqD, timeToPlay, -1);	
-			newSong.addKeytoSong(D);
+			newSong.addKeytoSong(D, timeToPlay);
 		}
 
 		if(gpio_get_value(gpioEND)){
