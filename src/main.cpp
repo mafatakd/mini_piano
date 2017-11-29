@@ -9,6 +9,7 @@
 
 #include "pwm-exp.h"
 using namespace std;
+
 //////////////////////////////////////////////////////////////////////
 //	structs and definitions
 //////////////////////////////////////////////////////////////////////
@@ -38,7 +39,7 @@ public:
 
 private:
 	struct Key{
-	NotesName name;
+		NotesName name;
 	};
 
 	struct Notes{
@@ -52,7 +53,7 @@ private:
 
 
 void Song::play(char filename[]){
-	// take a given file and play the song.
+	
 }
 
 Song::Song(char* songName){
@@ -72,7 +73,7 @@ int Song::write_to_file(char filename[]){
 	}
 	ofstream outfile;
 	char* filenameCopy;
-	char musStr[5] = {'.', 'm', 'u', 's', 0};
+	char musStr[5] = {'.', 'p', 'i', 0};
 	int filenameInd = 0;
 
 	while (filename[filenameInd] != 0){
@@ -147,7 +148,6 @@ float timePressed(unsigned int gpio);
 //	implementation
 //////////////////////////////////////////////////////////////////////
 
-
 void playFreq(float freq, float timeToPlayToPlay, int pinToPlay){
 
 	int status = pwmDriverInit();
@@ -178,37 +178,14 @@ float timeToPlayPressed(unsigned int gpio){
 	return timeToPlay;
 
 }
-// bool addKeytoSong(noteName noteName, Note*& song){
-	
-// 	Key* newKey = new Key;
-// 	newKey->name = noteName;
-// 	song->size += 1;
 
-// 	// if (song->key == NULL){
-// 	// 	song->key = newKey;
-// 	// 	return true;
-// 	// }
-
-// 	Note* curr = song;
-// 	while (curr->next != NULL){
-// 		curr = curr->next;
-// 	}
-
-// 	Note* newNote = new Note;
-// 	newNote->key = newKey;
-// 	newNote->next = NULL;
-// 	newNote->size = -1;
-// 	curr->next = newNote;
-
-// 	return true;
-// }
 
 
 int main(const int argc, const char* const argv[]){
+
 	unsigned int gpioC = 9;
 	unsigned int gpioD = 8;
 	unsigned int gpioEND = 0;
-
 
 	gpio_setup(gpioC);
 	gpio_setup(gpioD);
@@ -247,9 +224,42 @@ int main(const int argc, const char* const argv[]){
 			stillPlaying = false;
 			break;
 		}
+
 	~newSong();
 
 	}
 }
 
+
+
+
+
+
+
+
+
+// bool addKeytoSong(noteName noteName, Note*& song){
+	
+// 	Key* newKey = new Key;
+// 	newKey->name = noteName;
+// 	song->size += 1;
+
+// 	// if (song->key == NULL){
+// 	// 	song->key = newKey;
+// 	// 	return true;
+// 	// }
+
+// 	Note* curr = song;
+// 	while (curr->next != NULL){
+// 		curr = curr->next;
+// 	}
+
+// 	Note* newNote = new Note;
+// 	newNote->key = newKey;
+// 	newNote->next = NULL;
+// 	newNote->size = -1;
+// 	curr->next = newNote;
+
+// 	return true;
+// }
 
