@@ -32,7 +32,7 @@ void menu();
 #define freqG 392
 #define freqA 440
 #define freqB 493
-enum LETTERS {C, D, E, F, G, A, B};
+enum LETTERS {C, D, E, F, G, A, B, Null};
 
 //////////////////////////////////////////////////////////////////////
 //	Song class declaration
@@ -52,20 +52,17 @@ public:
 	//////////////////////////////////////////////////////////////////////
 	// helper functions
 
-	bool addKeytoSong(LETTERS newName);
+	bool addKeytoSong(LETTERS newName, int timePressed);
 	int typetoFreq(LETTERS letter);
 
 
 private:
-	struct Key{
+	struct Notes{
 		LETTERS name;
 		int timeHeld;
-	};
-
-	struct Notes{
-		Key* key;
 		Notes* next;
 	};
+
 	Notes* mySong;
 };
 
@@ -73,11 +70,12 @@ int Song::typetoFreq(LETTERS letter){
 
 	int freqArr[7] = {261, 293, 329, 349, 392, 440, 493};
 	return freqArr[letter];
+
 }
 
 bool Song::play(){
 	
-	if (mySong->key == NULL){
+	if (mySong->name == Null){
 		cerr << "OMG NO KEYS IN SONG CAN'T PLAY. ABORT" << endl;
 		return false;
 	}
@@ -85,7 +83,7 @@ bool Song::play(){
 	Notes* curr = mySong;
 
 	while (curr != NULL){
-		playFreq(typetoFreq(curr->key->name), curr->key->timeHeld, -1);
+		playFreq(typetoFreq(curr->name), curr->timeHeld, -1);
 		curr = curr->next;
 	}
 
@@ -96,14 +94,15 @@ bool Song::play(){
 
 Song::Song(char* songName){
 	mySong = new Notes;
-	mySong->key = NULL;
+	mySong->name = Null;
+	mySong->timeHeld = -1;
 	mySong->next = NULL;
 }
 
 
 int Song::write_to_file(char filename[]){
 	// check if no key in song :(
-	if (mySong->key == NULL){
+	if (mySong->name == Null){
 		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
 		return -1;
 	}
@@ -134,7 +133,7 @@ int Song::write_to_file(char filename[]){
 	char lettersArr[7] = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
 
 	while (curr != NULL){
-		outfile <<  lettersArr[curr->key->name] << " " << curr->key->timeHeld;
+		outfile <<  lettersArr[curr->name] << " " << curr->timeHeld;
 		if (curr->next != NULL){
 			outfile << " ";
 		}
@@ -144,13 +143,11 @@ int Song::write_to_file(char filename[]){
 	}
 }
 
-bool Song::addKeytoSong(LETTERS newName){
-	
-	Key* newKey = new Key;
-	newKey->name = newName;
+bool Song::addKeytoSong(LETTERS newName, int timePressed){
 
-	if (mySong->key == NULL){
-		mySong->key = newKey;
+	if (mySong->name == Null){
+		mySong->name = newName;
+		mySong->timeHeld = timePressed;
 		mySong->next = 0x0;
 		return true;
 	}
@@ -161,7 +158,8 @@ bool Song::addKeytoSong(LETTERS newName){
 	}
 
 	Notes* newNote = new Notes;
-	newNote->key = newKey;
+	newNote->name = name;
+	mySong->timeHeld = timePressed;
 	newNote->next = NULL;
 	curr->next = newNote;
 
@@ -214,8 +212,6 @@ void gpio_setup(unsigned int gpio){
 // }
 
 int recording(char songName[]){
-
-
 
 	unsigned int gpioC = 9;
 	unsigned int gpioD = 8;
@@ -279,6 +275,7 @@ int getChoice(){
 }
 
 void menu(){
+
 	cout << "Welcome to the MINI PIANO!" << endl;
 	cout << "Please choose an option from below [1 or 2]" << endl;
 	cout << "1. Play a song, and record it." << endl;
@@ -297,19 +294,10 @@ void menu(){
 	}
 	else if (choice == 2){
 
-
-
-
-
-
-
 	}
 	else if(choice == 3){
 		cout << "Well done!, good bye!" << endl;
 	}
-
-
-
 
 }
 
