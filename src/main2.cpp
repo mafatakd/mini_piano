@@ -175,7 +175,7 @@ int Song::readFile(const char filename[]){
 	char newfilename[100];
 
 	int num= 0;
-	for(int i= 0; filename[i] != '\0'; i++){
+	for(int i= 0; filename[i] != 0; i++){
 		newfilename[i]=filename[i];
 		num++;
 	}
@@ -183,15 +183,21 @@ int Song::readFile(const char filename[]){
 	newfilename[num]= '.';
 	newfilename[num+1]= 'p';
 	newfilename[num+2]= 'i';
-
+	newfilename[num+3] = 0;
+	for (int i = 0; newfilename[i] != 0; i++){
+		cout << newfilename[i];
+	}
+	cout << endl;	
+	
 	ifstream infile;
 	infile.open(newfilename);
 
   	if(!infile.is_open())
   		return -1;
-
+	
   	bool done=false;
   	int fileLineNumber=0;	
+	Notes* curr = mySong;
 
   	while(!done){
         ++fileLineNumber;
@@ -214,23 +220,36 @@ int Song::readFile(const char filename[]){
         	int num=0;
 
         	while(in != 0){
+		in=line[counter];
+		cout<< counter;
+		cout<<endl;
         		if(!gotLetter){
-        			in=line[counter];
         			for(int i=0; i<7; i++){
         				if(in==lettersArr[i]){
         					index=i;
+						cout << "in for loop: " << lettersArr[index] << endl;
         					break;
         				}
         			}
       				gotLetter= true;
+				cout << "after got letter: " << (LETTERS) index <<endl;
         		}
 
         		else if(gotLetter){
         			num=in-48;
         			gotLetter= false;
+				cout << num << endl;
+				addKeyToSong((LETTERS) index, num);
+				cout << "song key" <<  curr->name << ", " << curr->timeHeld;
+				curr = curr->next;
+				cout<<endl;
         		}
         		counter= counter+2;
-        		addKeyToSong((LETTERS) index, num);
+			
+
+
+        		
+
         	}
         }
 	}
@@ -385,9 +404,13 @@ void menu(){
 	}
 	else if (choice == 2){
 		char* SongName= new char[5];
-		SongName= {'S', 'o', 'n', 'g', 0};
-		Song newsong(SongName);
-		newsong.readFile(SongName);
+		SongName[0]= 'S';
+		SongName[1]= 'o';
+		SongName[2]= 'n';
+		SongName[3]= 'g';
+		SongName[4]= 0;
+		Song newSong(SongName);
+		newSong.readFile(SongName);
 		newSong.play();
 		delete SongName;
 
