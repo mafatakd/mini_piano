@@ -1,7 +1,7 @@
 # main compiler
 CC := g++
 
-TARGET1 := main
+TARGET1 := pwmReset
 
 all: $(TARGET1)
 

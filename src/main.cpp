@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <string>
 // #include "sound.h"
 #include <ugpio/ugpio.h>
 
@@ -20,6 +21,8 @@ void gpio_setup(unsigned int gpio);
 float timePressed(unsigned int gpio);
 void playFreq(float freq, float timeToPlay, int pinToPlay);
 void menu();
+int recording(string songName);
+
 
 //////////////////////////////////////////////////////////////////////
 //	structs and definitions
@@ -41,10 +44,10 @@ enum LETTERS {C, D, E, F, G, A, B};
 class Song{
 public:
 
-	int write_to_file(char filename[]);
+	int write_to_file(string filename);
 	bool record();
 	bool play();
-	Song(char* songName);
+	Song(string songName);
 	// Song(&Song);
 	int readFile(const char filename[]);
 	~Song();
@@ -92,7 +95,7 @@ bool Song::play(){
 	return true;
 }
 
-Song::Song(char* songName){
+Song::Song(string songName){
 	mySong = new Notes;
 	mySong->name = C;
 	mySong->timeHeld = -1;
@@ -100,7 +103,7 @@ Song::Song(char* songName){
 }
 
 
-int Song::write_to_file(char filename[]){
+int Song::write_to_file(string filename){
 	// check if no key in song :(
 	if (mySong->timeHeld == -1){
 		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
@@ -281,11 +284,20 @@ void gpio_setup(unsigned int gpio){
 
 // }
 
-int recording(char songName[]){
+int recording(string songName){
 
-	unsigned int gpioC = 9;
-	unsigned int gpioD = 8;
 	unsigned int gpioEND = 0;
+
+	unsigned int gpioC = 2;
+	unsigned int gpioD = 3;
+	unsigned int gpioE = 1;
+	unsigned int gpioF = 99;
+	unsigned int gpioG = 100;
+	unsigned int gpioA = 101;
+	unsigned int gpioB = 102;
+
+
+
 
 	gpio_setup(gpioC);
 	gpio_setup(gpioD);
@@ -293,10 +305,7 @@ int recording(char songName[]){
 
 	bool stillPlaying = true;;
 	float timeToPlay;
-	
-	// char* songName = new char[100];
-	// songName = (char*) argv[1];
-	cout << "Got argument 1 into songName: " << songName << endl;
+
 
 	Song newSong(songName);
 	cout << "Created new song instance with songName: " << songName << endl;
@@ -304,15 +313,21 @@ int recording(char songName[]){
 
 	while (stillPlaying){
 
+		if(gpio_get_value(gpioEND)){
+			cerr << "Done playing" << endl;
+			stillPlaying = false;
+			break;
+		}
+
 		if (gpio_get_value(gpioC)){
 			// timeToPlay = timeToPlayPressed(gpioC);
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);		// switch this to logging.
-			playFreq(freqC, timeToPlay, 7);
+			playFreq(freqC, timeToPlay, -1);
 			newSong.addKeyToSong(C, timeToPlay);
 		}
 
-		if (gpio_get_value(gpioD)){
+		else if (gpio_get_value(gpioD)){
 			// timeToPlay = timeToPlayPressed(gpioD);
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);		// switch this to logging.
@@ -320,10 +335,14 @@ int recording(char songName[]){
 			newSong.addKeyToSong(D, timeToPlay);
 		}
 
-		if(gpio_get_value(gpioEND)){
-			stillPlaying = false;
-			break;
+		else if (gpio_get_value(gpioE)){
+			timeToPlay = 1;
+			printf("D is pressed (GPIO # %d) \n", gpioE);		// switch this to logging.
+			playFreq(freqE, timeToPlay, -1);	
+			newSong.addKeyToSong(E, timeToPlay);
 		}
+
+		
 	}
 
 	if ( newSong.write_to_file(songName) < 0){
@@ -332,8 +351,6 @@ int recording(char songName[]){
 	else{
 		cerr << "File written successfully" << endl;
 	}
-
-	delete songName;
 }
 
 
@@ -358,8 +375,10 @@ void menu(){
 		choice = getChoice();
 	}
 	if (choice == 1){
-		char* songName;
+		string songName;
+		cout << "Please type in your song name: ";
 		cin >> songName;
+		cerr << "Calling recording function with song name: " << songName << endl;
 		recording(songName);
 	}
 	else if (choice == 2){
