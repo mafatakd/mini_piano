@@ -19,7 +19,6 @@ void playFreq(float freq, float timeToPlay, int pinToPlay);
 void gpio_setup(unsigned int gpio);
 float timePressed(unsigned int gpio);
 void playFreq(float freq, float timeToPlay, int pinToPlay);
-void readFile(const char filename[])
 void menu();
 
 //////////////////////////////////////////////////////////////////////
@@ -47,7 +46,7 @@ public:
 	bool play();
 	Song(char* songName);
 	// Song(&Song);
-
+	int readFile(const char filename[]);
 	~Song();
 	
 	//////////////////////////////////////////////////////////////////////
@@ -167,7 +166,8 @@ bool Song::addKeyToSong(LETTERS newName, int timePressed){
 }
 
 
-void Song::readFile(const char filename[]){
+int Song::readFile(const char filename[]){
+
 	const int maxLineLength=1000;
 	char line[maxLineLength];
 
@@ -199,7 +199,6 @@ void Song::readFile(const char filename[]){
             if (infile.eof()) {
                 done = true;
             }
-
             else{
                 return -1;
             }
@@ -213,17 +212,15 @@ void Song::readFile(const char filename[]){
         	int index=0;
         	int num=0;
 
-        	while(in!=0){
+        	while(in != 0){
         		if(!gotLetter){
         			in=line[counter];
-
         			for(int i=0; i<7; i++){
         				if(in==lettersArr[i]){
         					index=i;
         					break;
         				}
         			}
-
       				gotLetter= true;
         		}
 
@@ -231,12 +228,13 @@ void Song::readFile(const char filename[]){
         			num=in-48;
         			gotLetter= false;
         		}
-
         		counter= counter+2;
-        		addKeyToSong(index, num);
+        		addKeyToSong((LETTERS) index, num);
         	}
         }
+	}
 }
+
 
 Song::~Song(){
 	Notes* curr = mySong;
@@ -311,7 +309,7 @@ int recording(char songName[]){
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);		// switch this to logging.
 			playFreq(freqC, timeToPlay, 7);
-			newSong.addKeytoSong(C, timeToPlay);
+			newSong.addKeyToSong(C, timeToPlay);
 		}
 
 		if (gpio_get_value(gpioD)){
@@ -319,7 +317,7 @@ int recording(char songName[]){
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);		// switch this to logging.
 			playFreq(freqD, timeToPlay, -1);	
-			newSong.addKeytoSong(D, timeToPlay);
+			newSong.addKeyToSong(D, timeToPlay);
 		}
 
 		if(gpio_get_value(gpioEND)){
