@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <string>
 // #include "sound.h"
 #include <ugpio/ugpio.h>
 
@@ -19,8 +20,9 @@ void playFreq(float freq, float timeToPlay, int pinToPlay);
 void gpio_setup(unsigned int gpio);
 float timePressed(unsigned int gpio);
 void playFreq(float freq, float timeToPlay, int pinToPlay);
-void readFile(const char filename[])
 void menu();
+int recording(char songName[]);
+
 
 //////////////////////////////////////////////////////////////////////
 //	structs and definitions
@@ -33,7 +35,7 @@ void menu();
 #define freqG 392
 #define freqA 440
 #define freqB 493
-enum LETTERS {C, D, E, F, G, A, B, Null};
+enum LETTERS {C, D, E, F, G, A, B};
 
 //////////////////////////////////////////////////////////////////////
 //	Song class declaration
@@ -45,15 +47,14 @@ public:
 	int write_to_file(char filename[]);
 	bool record();
 	bool play();
-	Song(char* songName);
-	// Song(&Song);
-
+	Song(char songName[]);
+	int readFile(const char filename[]);
 	~Song();
 	
 	//////////////////////////////////////////////////////////////////////
 	// helper functions
 
-	bool addKeytoSong(LETTERS newName, int timePressed);
+	bool addKeyToSong(LETTERS newName, int timePressed);
 	int typetoFreq(LETTERS letter);
 
 
@@ -76,7 +77,7 @@ int Song::typetoFreq(LETTERS letter){
 
 bool Song::play(){
 	
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		cerr << "OMG NO KEYS IN SONG CAN'T PLAY. ABORT" << endl;
 		return false;
 	}
@@ -93,9 +94,9 @@ bool Song::play(){
 	return true;
 }
 
-Song::Song(char* songName){
+Song::Song(char songName[]){
 	mySong = new Notes;
-	mySong->name = Null;
+	mySong->name = C;
 	mySong->timeHeld = -1;
 	mySong->next = NULL;
 }
@@ -103,7 +104,7 @@ Song::Song(char* songName){
 
 int Song::write_to_file(char filename[]){
 	// check if no key in song :(
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
 		return -1;
 	}
@@ -130,7 +131,6 @@ int Song::write_to_file(char filename[]){
 
 	// going through the song to print the notes.
 	Notes* curr = mySong;
-	enum LETTERS {C, D, E, F, G, A, B};
 	char lettersArr[7] = {'C', 'D', 'E', 'F', 'G', 'A', 'B'};
 
 	while (curr != NULL){
@@ -144,9 +144,9 @@ int Song::write_to_file(char filename[]){
 	}
 }
 
-bool Song::addKeytoSong(LETTERS newName, int timePressed){
+bool Song::addKeyToSong(LETTERS newName, int timePressed){
 
-	if (mySong->name == Null){
+	if (mySong->timeHeld == -1){
 		mySong->name = newName;
 		mySong->timeHeld = timePressed;
 		mySong->next = 0x0;
@@ -159,15 +159,16 @@ bool Song::addKeytoSong(LETTERS newName, int timePressed){
 	}
 
 	Notes* newNote = new Notes;
-	newNote->name = name;
+	newNote->name = newName;
 	mySong->timeHeld = timePressed;
 	newNote->next = NULL;
 	curr->next = newNote;
-
 	return true;
 }
 
-void Song::readFile(const char filename[]){
+
+int Song::readFile(const char filename[]){
+
 	const int maxLineLength=1000;
 	char line[maxLineLength];
 
@@ -199,7 +200,6 @@ void Song::readFile(const char filename[]){
             if (infile.eof()) {
                 done = true;
             }
-
             else{
                 return -1;
             }
@@ -213,17 +213,15 @@ void Song::readFile(const char filename[]){
         	int index=0;
         	int num=0;
 
-        	while(in!=0){
+        	while(in != 0){
         		if(!gotLetter){
         			in=line[counter];
-
         			for(int i=0; i<7; i++){
         				if(in==lettersArr[i]){
         					index=i;
         					break;
         				}
         			}
-
       				gotLetter= true;
         		}
 
@@ -231,12 +229,13 @@ void Song::readFile(const char filename[]){
         			num=in-48;
         			gotLetter= false;
         		}
-
         		counter= counter+2;
-        		addKeyToSong(index, num);
+        		addKeyToSong((LETTERS) index, num);
         	}
         }
+	}
 }
+
 
 Song::~Song(){
 	Notes* curr = mySong;
@@ -285,9 +284,18 @@ void gpio_setup(unsigned int gpio){
 
 int recording(char songName[]){
 
-	unsigned int gpioC = 9;
-	unsigned int gpioD = 8;
 	unsigned int gpioEND = 0;
+
+	unsigned int gpioC = 2;
+	unsigned int gpioD = 3;
+	unsigned int gpioE = 1;
+	unsigned int gpioF = 99;
+	unsigned int gpioG = 100;
+	unsigned int gpioA = 101;
+	unsigned int gpioB = 102;
+
+
+
 
 	gpio_setup(gpioC);
 	gpio_setup(gpioD);
@@ -295,10 +303,7 @@ int recording(char songName[]){
 
 	bool stillPlaying = true;;
 	float timeToPlay;
-	
-	// char* songName = new char[100];
-	// songName = (char*) argv[1];
-	cout << "Got argument 1 into songName: " << songName << endl;
+
 
 	Song newSong(songName);
 	cout << "Created new song instance with songName: " << songName << endl;
@@ -306,26 +311,36 @@ int recording(char songName[]){
 
 	while (stillPlaying){
 
+		if(gpio_get_value(gpioEND)){
+			cerr << "Done playing" << endl;
+			stillPlaying = false;
+			break;
+		}
+
 		if (gpio_get_value(gpioC)){
 			// timeToPlay = timeToPlayPressed(gpioC);
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioC);		// switch this to logging.
-			playFreq(freqC, timeToPlay, 7);
-			newSong.addKeytoSong(C);
+			playFreq(freqC, timeToPlay, -1);
+			newSong.addKeyToSong(C, timeToPlay);
 		}
 
-		if (gpio_get_value(gpioD)){
+		else if (gpio_get_value(gpioD)){
 			// timeToPlay = timeToPlayPressed(gpioD);
 			timeToPlay = 1;
 			printf("D is pressed (GPIO # %d) \n", gpioD);		// switch this to logging.
 			playFreq(freqD, timeToPlay, -1);	
-			newSong.addKeytoSong(D);
+			newSong.addKeyToSong(D, timeToPlay);
 		}
 
-		if(gpio_get_value(gpioEND)){
-			stillPlaying = false;
-			break;
+		else if (gpio_get_value(gpioE)){
+			timeToPlay = 1;
+			printf("D is pressed (GPIO # %d) \n", gpioE);		// switch this to logging.
+			playFreq(freqE, timeToPlay, -1);	
+			newSong.addKeyToSong(E, timeToPlay);
 		}
+
+		
 	}
 
 	if ( newSong.write_to_file(songName) < 0){
@@ -334,8 +349,6 @@ int recording(char songName[]){
 	else{
 		cerr << "File written successfully" << endl;
 	}
-
-	delete songName;
 }
 
 
@@ -360,9 +373,15 @@ void menu(){
 		choice = getChoice();
 	}
 	if (choice == 1){
-		char* songName;
-		cin >> songName;
-		recording(songName);
+		string songName;
+		cout << "Please type in your song name: ";
+		getline(cin, songName);
+		cerr << "Converting input to char array..." << endl;
+		char* songNameArr = new char[songName.length() + 1];
+		cerr << "Calling recording function with song name: " << songName << endl;
+		recording(songNameArr);
+
+		delete songNameArr;
 	}
 	else if (choice == 2){
 		char* SongName= new char[5];
