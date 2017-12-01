@@ -316,6 +316,8 @@ int Song::readFile(){
 }
 
 Song::~Song(){
+
+	logging("Function: Song::Song() | TRACE: Song object being destroyed...");
 	Notes* curr = mySong;
 	while (curr != NULL) {
 		Notes* next = curr->next;
@@ -325,6 +327,7 @@ Song::~Song(){
 	mySong = 0;
 	mySongNameLen = 0;
 	delete mySongName;
+	logging("Function: Song::Song() | TRACE: Song object  destroyed.");
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -395,6 +398,8 @@ int whichPin(bool pinSeven){
 }
 
 int recording(char songName[], int songNameLength, string stringSongName){
+	logging("Function: recording() | TRACE: Starting recording.");
+
 	unsigned int gpioEND = 1;
 
 	unsigned int gpioC = 19;	// white
@@ -411,18 +416,23 @@ int recording(char songName[], int songNameLength, string stringSongName){
 	gpio_setup(gpioF);
 	gpio_setup(gpioG);
 	gpio_setup(gpioEND);
+	logging("Function: recording() | TRACE: All GPIO pins requested and set to input.");
+
 
 	bool stillPlaying = true;
 	bool pinSeven = true;
 	int timeToPlay;
 
 	Song newSong(songName, songNameLength);
+	logging("Function: recording() | TRACE: Created new song instance with songName.");
+
 	cout << "Created new song instance with songName" << endl;
 
 	while (stillPlaying) {
 
 		if (gpio_get_value(gpioEND)) {
-			cerr << "Well played! Your masterpiece was saved." << endl;
+			logging("Function: recording() | TRACE: GPIO END was pressed.");
+			cout << "Well played! Your masterpiece was saved." << endl;
 			stillPlaying = false;
 			break;
 		}
@@ -430,7 +440,7 @@ int recording(char songName[], int songNameLength, string stringSongName){
 		if (gpio_get_value(gpioC)) {
 			// timeToPlay = timeToPlayPressed(gpioC);
 			timeToPlay = 1;
-			printf("C is pressed (GPIO # %d) \n", gpioC); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note C was pressed.");
 			playFreq(freqC, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(C, timeToPlay);
@@ -439,7 +449,7 @@ int recording(char songName[], int songNameLength, string stringSongName){
 		else if (gpio_get_value(gpioD)) {
 			// timeToPlay = timeToPlayPressed(gpioD);
 			timeToPlay = 1;
-			printf("D is pressed (GPIO # %d) \n", gpioD); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note D was pressed.");
 			playFreq(freqD, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(D, timeToPlay);
@@ -447,28 +457,28 @@ int recording(char songName[], int songNameLength, string stringSongName){
 
 		else if (gpio_get_value(gpioE)) {
 			timeToPlay = 1;
-			printf("E is pressed (GPIO # %d) \n", gpioE); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note E was pressed.");
 			playFreq(freqE, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(E, timeToPlay);
 		}
 		else if (gpio_get_value(gpioF)) {
 			timeToPlay = 1;
-			printf("F is pressed (GPIO # %d) \n", gpioF); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note F was pressed.");
 			playFreq(freqF, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(F, timeToPlay);
 		}
 		else if (gpio_get_value(gpioG)) {
 			timeToPlay = 1;
-			printf("G is pressed (GPIO # %d) \n", gpioG); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note G was pressed.");
 			playFreq(freqG, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(G, timeToPlay);
 		}
 		else if (gpio_get_value(gpioA)) {
 			timeToPlay = 1;
-			printf("A is pressed (GPIO # %d) \n", gpioA); // switch this to logging.
+			logging("Function: recording() | TRACE: GPIO note A was pressed.");
 			playFreq(freqA, timeToPlay, whichPin(pinSeven));
 			pinSeven = !pinSeven;
 			newSong.addKeyToSong(A, timeToPlay);
@@ -476,10 +486,10 @@ int recording(char songName[], int songNameLength, string stringSongName){
 	}
 
 	if (newSong.write_to_file() < 0) {
-		cerr << "Some error while writing to file! Oh no..." << endl;
+		logging("Function: recording() | TRACE: Some error");
 	}
 	else {
-		cerr << "File written successfully" << endl;
+		logging("Function: recording() | TRACE: File written successfully");
 	}
 	newSong.play();
 	string line[100];
@@ -487,6 +497,12 @@ int recording(char songName[], int songNameLength, string stringSongName){
 	ifstream infile;
 	string s;
     infile.open("Choices.txt");
+    logging("Function: recording() | TRACE: Opening Choices-menu file...");
+
+    if (!infile.is_open()){
+    	logging("Function: recording() | ERROR: Could not open Choices-menu file.");
+    	return -1;
+    }
 
     while (getline(infile, s)) {
 		line[lineCounter] = s;
@@ -498,6 +514,8 @@ int recording(char songName[], int songNameLength, string stringSongName){
 	outfile.open("Choices.txt", std::ios_base::app);
 	outfile << lineCounter + 1 << ". " << stringSongName <<std::endl;
 	outfile.close();
+	logging("Function: recording() | TRACE: Song name appended successfully to Choices-menu.");
+
 	menu();
 
 	// implement write to menu
@@ -512,6 +530,7 @@ int getChoice(){
 }
 
 void menu(){
+	logging("Function: menu() | TRACE: Menu function called.");
 
 	cout << "Welcome to the MINI PIANO!" << endl;
 	cout << "Please choose an option from below [1 or 2]" << endl;
@@ -525,12 +544,15 @@ void menu(){
 		cout << "Error please input a valid choice [1-3]" << endl;
 		choice = getChoice();
 	}
+		
 	if (choice == 1) {
+		logging("Function: menu() | TRACE: Choice 1 chosen.");
+	
 		string songName;
 		cout << "Please type in your song name: ";
 		getline(cin, songName);
 
-		cerr << "Converting input to char array..." << endl;
+		logging("Function: menu() | TRACE: Converting input to char array.");
 		cout << songName << endl;
 		char songNameArr[songName.length() + 1];
 		
@@ -538,17 +560,19 @@ void menu(){
 
 		for (i = 0; i < songName.length(); i++) {
 			songNameArr[i] = songName[i];
-			cout << songNameArr[i] << endl;
 		}
 		songNameArr[i] = 0;
 
 
-		cerr << "Calling recording function with song name: " << songName << endl;
+		logging("Function: menu() | TRACE: Calling recording function with char array, songname.");
+	
 
 		recording(songNameArr, songName.length() + 1, songName);
 	}
 
 	else if (choice == 2) {
+		logging("Function: menu() | TRACE: Choice 2 chosen.");
+
 		cout << "Which song would you like to play?" << endl;
 
 		//First read file called Choices.txt
@@ -582,6 +606,8 @@ void menu(){
 			cerr << "Error, you must select a song between the range of 1 to 9" << endl;
 			cin >> choice;
 		}
+		logging("Function: menu() | TRACE: Got choice, creating char array to instantiate song class.");
+
 
 		string sentence = line[choice - 1];
 
@@ -598,6 +624,8 @@ void menu(){
 		Song newSong(chosenSong, sentence.length() - 2);
 		newSong.readFile();
 		newSong.play();
+		logging("Function: menu() | TRACE: Successfully read and played file.");
+
 		menu();
 	}
 	else if (choice == 3) {
