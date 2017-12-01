@@ -393,7 +393,7 @@ int whichPin(bool pinSeven){
 	}
 }
 
-int recording(char songName[], int songNameLength){
+int recording(char songName[], int songNameLength, string stringSongName){
 	unsigned int gpioEND = 1;
 
 	unsigned int gpioC = 19;	// white
@@ -544,7 +544,7 @@ void menu(){
 
 		cerr << "Calling recording function with song name: " << songName << endl;
 
-		recording(songNameArr, songName.length() + 1);
+		recording(songNameArr, songName.length() + 1, songName);
 	}
 
 	else if (choice == 2) {
