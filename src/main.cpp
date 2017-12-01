@@ -175,7 +175,7 @@ int Song::write_to_file(){
 	// 	i++;
 	// }
 	cout << endl;
-	logging("Function: Song::write_to_file() | TRACE: Opening file...")
+	logging("Function: Song::write_to_file() | TRACE: Opening file...");
  
 	outfile.open(filename);
 
