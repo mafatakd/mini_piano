@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 // #include "sound.h"
 #include <ugpio/ugpio.h>
 
@@ -83,7 +84,7 @@ int Song::typetoFreq(LETTERS letter){
 bool Song::play(){
 
 	if (mySong->timeHeld == -1) {
-		logging("OMG NO KEYS IN SONG, CAN'T PLAY. ABORT");
+		logging("Function: Song::play() | ERROR: No notes in this song, cannot play.");
 		return false;
 	}
 
@@ -96,14 +97,14 @@ bool Song::play(){
 		curr = curr->next;
 	}
 
-	logging("Done playing song");
+	logging("Function: Song::play() | TRACE: Finished playing requested song.");
 
 	return true;
 }
 
 Song::Song(char songName[], int songNameLen){
 
-	logging("Constructing song class");
+	logging("Function: Song::Song() | TRACE: Creating song object.");
 
 	mySong = new Notes;
 	mySong->letterEnum = C;
@@ -127,18 +128,18 @@ Song::Song(char songName[], int songNameLen){
 	// cout << endl;
 
 	if (i == 300) {
-		logging("Songname not 0 appended!");
+		logging("Function: Song::Song() | ERROR: Song name not 0 appended.");
 	}
-	logging("Done constructing song class");
+	logging("Function: Song::Song() | TRACE: Finished creating song object.");
 }
 
 int Song::write_to_file(){
 
-	cerr << "Entered Song::write_to_file" << endl;
+	logging("Function: Song::write_to_file() | TRACE: Writing song to file specified.");
 
 	// check if no key in song :(
 	if (mySong->timeHeld == -1) {
-		cerr << "Omg NOT EVEN A SINGLE NOTE" << endl;
+		logging("Function: Song::write_to_file() | ERROR: There are no notes in this song.");
 		return -1;
 	}
 
@@ -146,14 +147,14 @@ int Song::write_to_file(){
 	// initializing file for output.
 	ofstream outfile;
 	cout << "Instantiated outfile." << endl;
-
+	logging("Function: Song::write_to_file() | TRACE: Instantiated outfile.");
 	char filename[mySongNameLen + 3];
 
 	cout << "Created filename array" << endl;
-
+	logging("Function: Song::write_to_file() | TRACE: Created filename array.");
 	char piStr[4] = { '.', 'p', 'i', 0 };
 
-	cout << "Created .pi array" << endl;
+	logging("Function: Song::write_to_file() | TRACE: Created .pi array.");
 
 	
 	int filenameInd = 0;
@@ -334,7 +335,7 @@ void playFreq(float freq, int timeToPlay, int pinToPlay){
 	int status = pwmDriverInit();
 
 	status = pwmSetFrequency(freq);
-	status = pwmSetupDriver(pinToPlay, 10, 0);
+	status = pwmSetupDriver(pinToPlay, 1, 0);
 
 	sleep(timeToPlay);
 	status = pwmSetupDriver(pinToPlay, 0, 0);
@@ -359,20 +360,28 @@ void gpio_setup(unsigned int gpio){
 // }
 
 int logging(string s){
-	time_t rawtime;
+
 	struct tm * timeinfo;
+	time_t rawtime;
 	time (&rawtime);
 	timeinfo = localtime (&rawtime);
 
+	stringstream ssLogFileName;
+	ssLogFileName << "Logging-" << __TIME__  <<  ".txt" << '\0' << endl;
+	string logFileName  = ssLogFileName.str();
+
 	ofstream outfile; 
-    	outfile.open("Logging.txt");
+    	outfile.open(logFileName.c_str(), std::ios_base::app);
 
-    if (!outfile.is_open())
-        return -1;  
+	int fileLineNumber = 0;
+    	if (!outfile.is_open())
+		return -1;  
 
-    outfile<< timeinfo->tm_hour << ":" << timeinfo->tm_min << ":" << timeinfo->tm_sec << s;
-    outfile<<endl;
-    outfile.close();
+
+	outfile << __DATE__ << " " << __TIME__ <<  " " << s;
+
+	outfile<<endl;
+	outfile.close();
 }
 
 int whichPin(bool pinSeven){
