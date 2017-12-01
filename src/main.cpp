@@ -174,7 +174,6 @@ int Song::write_to_file(){
 	// 	cout << filename[i];
 	// 	i++;
 	// }
-	cout << endl;
 	logging("Function: Song::write_to_file() | TRACE: Opening file...");
  
 	outfile.open(filename);
@@ -252,12 +251,15 @@ int Song::readFile(){
 		cerr << filename[i];
 	}
 	cerr << endl;
-	logging("readFile: Got filename.");
+	logging("Function: Song::readFile() | TRACE: Got filename, appended .pi extension");
 
 	ifstream infile;
 	infile.open(filename);
+	logging("Function: Song::readFile() | TRACE: First note successfully added to song.");
 
 	if (!infile.is_open())
+		logging("Function: Song::readFile() | ERROR: Could not open file");
+
 		return -1;
 
 	bool done = false;
@@ -292,12 +294,11 @@ int Song::readFile(){
 					for (int i = 0; i < 7; i++) {
 						if (in == lettersArr[i]) {
 							index = i;
-							cout << "readFile: Letter recognized by array loop: " << lettersArr[index] << endl;
 							break;
 						}
 					}
 					gotLetter = true;
-					cout << "readFile: Got letter: " << (LETTERS)index << endl;
+					// logging("Function: Song::readFile() | TRACE: Got letter.");
 				}
 
 				else if (gotLetter) {
@@ -310,6 +311,8 @@ int Song::readFile(){
 			}
 		}
 	}
+	logging("Function: Song::readFile() | TRACE: File successfully read, song linked list built.");
+
 }
 
 Song::~Song(){
