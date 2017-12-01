@@ -481,6 +481,22 @@ int recording(char songName[], int songNameLength){
 		cerr << "File written successfully" << endl;
 	}
 	newSong.play();
+	string line[100];
+	int lineCounter = 0;	// lineCounter is 0 indexed, topped of at 8. (max 9 songs saved)
+	ifstream infile;
+	string s;
+    infile.open("Choices.txt");
+
+    while (getline(infile, s)) {
+		line[lineCounter] = s;
+		lineCounter++;
+	}
+	infile.close();
+	 
+	ofstream outfile;
+	outfile.open("Choices.txt", std::ios_base::app);
+	outfile << lineCounter + 1 << ". " << stringSongName <<std::endl;
+	outfile.close();
 	menu();
 
 	// implement write to menu
