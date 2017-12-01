@@ -168,7 +168,7 @@ int Song::write_to_file(){
 	for (int i = 0; i < 4; i++) {
 		filename[filenameInd + i] = piStr[i];
 	}
-	logging("Function: Song::write_to_file() | TRACE: Filename created by cocatenating songname and .pi extension. ")
+	logging("Function: Song::write_to_file() | TRACE: Filename created by cocatenating songname and .pi extension. ");
 	// int i = 0;
 	// while (filename[i] != 0){
 	// 	cout << filename[i];
@@ -598,6 +598,7 @@ void menu(){
 		Song newSong(chosenSong, sentence.length() - 2);
 		newSong.readFile();
 		newSong.play();
+		menu();
 	}
 	else if (choice == 3) {
 		cout << "Well done!, good bye!" << endl;
