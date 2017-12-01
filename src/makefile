@@ -1,7 +1,7 @@
 # main compiler
 CC := g++
 
-TARGET1 := main2
+TARGET1 := main
 
 all: $(TARGET1)
 
