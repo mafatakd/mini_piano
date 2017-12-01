@@ -146,11 +146,9 @@ int Song::write_to_file(){
 
 	// initializing file for output.
 	ofstream outfile;
-	cout << "Instantiated outfile." << endl;
 	logging("Function: Song::write_to_file() | TRACE: Instantiated outfile.");
 	char filename[mySongNameLen + 3];
 
-	cout << "Created filename array" << endl;
 	logging("Function: Song::write_to_file() | TRACE: Created filename array.");
 	char piStr[4] = { '.', 'p', 'i', 0 };
 
@@ -166,26 +164,26 @@ int Song::write_to_file(){
 	}
 	cout << endl;
 	
-	logging("Got filename");
 
 	for (int i = 0; i < 4; i++) {
 		filename[filenameInd + i] = piStr[i];
 	}
-	int i = 0;
-	while (filename[i] != 0){
-		cout << filename[i];
-		i++;
-	}
+	logging("Function: Song::write_to_file() | TRACE: Filename created by cocatenating songname and .pi extension. ")
+	// int i = 0;
+	// while (filename[i] != 0){
+	// 	cout << filename[i];
+	// 	i++;
+	// }
 	cout << endl;
-	logging("Got filename to write to using mySongName");
+	logging("Function: Song::write_to_file() | TRACE: Opening file...")
  
 	outfile.open(filename);
 
 	if (!outfile.is_open()) {
-		logging("Could not open file");
+		logging("Function: Song::write_to_file() | ERROR: Could not open file.");
 		return -2;
 	}
-	logging("File opened successfully");
+	logging("Function: Song::write_to_file() | TRACE: File opened successfully.");
 	// going through the song to print the notes.
 	Notes* curr = mySong;
 	char lettersArr[7] = { 'C', 'D', 'E', 'F', 'G', 'A', 'B' };
@@ -205,7 +203,7 @@ int Song::write_to_file(){
 bool Song::addKeyToSong(LETTERS newName, int timePressed){
 
 	if (timePressed < 1) {
-		logging("addKeyToSong: Time pressed (passed to this function) is less than 1. ABORT");
+		logging("Function: Song::addKeyToSong() | TRACE: Time pressed (passed to this function) is less than 1.");
 		return false;
 	}
 
@@ -213,7 +211,7 @@ bool Song::addKeyToSong(LETTERS newName, int timePressed){
 		mySong->letterEnum = newName;
 		mySong->timeHeld = timePressed;
 		mySong->next = NULL;
-		// logging("Successfully added first note to song! Note: " + (string) mySong->letterEnum (string) ", timeHeld: " + (string) mySong->timeHeld);
+		logging("Function: Song::addKeyToSong() | TRACE: First note successfully added to song.");
 		return true;
 	}
 
